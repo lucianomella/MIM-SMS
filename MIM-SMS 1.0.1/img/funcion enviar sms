@@ -1,0 +1,35 @@
+self.addr="00:1D:3B:2C:1A:A4"#self.direc.get_text()
+		self.port=22 #self.puerto.get_text()
+		self.data=str(self.sms.get_text())
+		self.fila_Actual=0
+		#try:#leemos el archivo y lo pasamos a la tabla de la base de datos
+			self.f=open("conexion","r+t")
+		except IOError:
+			self.m=mensaje(u"No se encuentra el archivo de configuración de base de datos", u"Error")
+		else:
+			self.arch=self.f.readlines() #leemos cada linea del archivo conexion
+			self.servidor=str(self.arch[0])
+			self.usuario=str(self.arch[1])
+			self.clave=str(self.arch[2])
+			self.conexion = MySQLdb.connect(self.servidor[:-1], str(self.usuario[:-1]), str(self.clave[:-1]))
+			self.conexion.select_db('mimsms')#se establece el cursor de la conexion
+			self.Cursor = self.conexion.cursor()  
+			self.sql="""select telefono from contactos order by telefono"""
+			self.Cursor.execute(self.sql)
+			self.resultado=self.Cursor.fetchall()
+			self.fila_actual=0
+			for self.contac in self.resultado: 
+				self.mobile="58"+str(int(self.contac[0]))
+				self.socket= bluetooth.BluetoothSocket(bluetooth.RFCOMM)
+				
+				self.socket.connect(('00:1D:3B:2C:1A:A4',22))
+				
+				self.socket.send('ATZ\r')
+				print socket.recv(1024)
+				self.socket.send('AT+CMGF=1\r')
+				print socket.recv(1024)
+				self.socket.send('AT+CMGS=%s\r'%self.mobile) #self.socket.send('AT+CMGS='+\"self.mobile\""\r')
+				print socket.recv(1024)
+				self.socket.send(data+chr(26))
+				print socket.recv(1024)
+				self.socket.close()
